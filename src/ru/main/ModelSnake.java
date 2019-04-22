@@ -7,17 +7,17 @@ import java.util.List;
 
 public class ModelSnake {
     private double elementSize=10;
-    private double rectPositionX=0;
-    private double rectPositionY=50;
+    private double rectPositionX;
+    private double rectPositionY;
+
+    private long gameSpeed=200;
 
     private double snakeLength=0;
 
     private String direction = "";
 
-    private double newApplePositionX;
-    private double newApplePositionY;
-    private double applePositionX=0;
-    private double applePositionY=0;
+    private double applePositionX;
+    private double applePositionY;
 
     private Color snakeColor=Color.RED;
     private Color appleColor=Color.GREEN;
@@ -59,18 +59,24 @@ public class ModelSnake {
     public String getDirection() {
         return direction;
     }
+
+    public long getGameSpeed () {
+        return gameSpeed;
+    }
     public double getNewApplePositionX() {
-        this.setApplePositionX(((int)(Math.random()*60))*10);
-        return newApplePositionX=((int)(Math.random()*60))*10;
+//        this.setApplePositionX(((int)(Math.random()*60))*10);
+        return applePositionX =((int)(Math.random()*60))*10;
     }
     public double getNewApplePositionY() {
-        this.setApplePositionY(((int)(Math.random()*35))*10);
-        return newApplePositionY=((int)(Math.random()*35))*10;
+//        applePositionY.setApplePositionY(((int)(Math.random()*35))*10);
+        return applePositionY =((int)(Math.random()*35))*10;
     }
     public double getApplePositionX() {
+
         return applePositionX;
     }
     public double getApplePositionY() {
+
         return applePositionY;
     }
 
@@ -108,6 +114,11 @@ public class ModelSnake {
         this.applePositionY=applePositionY;
         notifyAllListeners();
     }
+    public void setGameSpeed (long gameSpeed) {
+        this.gameSpeed=gameSpeed;
+        notifyAllListeners();
+    }
+
 
 
 
