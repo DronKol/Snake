@@ -2,14 +2,12 @@ package ru.main;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -18,14 +16,19 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-import java.util.LinkedList;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.List;
+
+import static ru.main.Constans.FONT_GAMEOVER;
 
 public class ViewerSnake extends Application {
-    private ModelSnake modelSnake = new ModelSnake(1);
+    private ModelSnake modelSnake = new ModelSnake();
     private ModelSnakeListener modelSnakeListener;
-    LinkedList snakeElements = new LinkedList();
+
 
 //    public ViewerSnake(ModelSnake modelSnake) {
 //        this.modelSnake=modelSnake;
@@ -48,42 +51,59 @@ public class ViewerSnake extends Application {
     public void start(Stage initialStage) throws Exception {
 
         Canvas canvas = new Canvas();
-        canvas.setWidth(600);
-        canvas.setHeight(400);
+        canvas.setWidth(modelSnake.getCanvasWidth());
+        canvas.setHeight(modelSnake.getCanvasHeight());
         double canvasStartPositionY = 50;
 
         GraphicsContext context = canvas.getGraphicsContext2D();
 
-        Canvas appleCanvas = new Canvas();
-        GraphicsContext appleContext = appleCanvas.getGraphicsContext2D();
-        appleCanvas.setWidth(600);
-        appleCanvas.setHeight(400);
+        //Canvas appleCanvas = new Canvas();
+        //GraphicsContext appleContext = appleCanvas.getGraphicsContext2D();
+        //appleCanvas.setWidth(600);
+        //appleCanvas.setHeight(400);
 
         canvas.addEventFilter(MouseEvent.ANY, (e) -> canvas.requestFocus());
+        //canvas.setOnKeyPressed(new EventHandler<KeyEvent>() {
+        //    @Override
+        //    public void handle(KeyEvent event) {
+        //
+        //        if (event.getCode() == KeyCode.DOWN && modelSnake.getDirection()!="up") {
+        //            modelSnake.setDirection("down");
+        //        }
+        //        if (event.getCode() == KeyCode.UP && modelSnake.getDirection()!="down") {
+        //            modelSnake.setDirection("up");
+        //        }
+        //        if (event.getCode() == KeyCode.LEFT && modelSnake.getDirection()!="right") {
+        //            modelSnake.setDirection("left");
+        //        }
+        //        if (event.getCode() == KeyCode.RIGHT && modelSnake.getDirection()!="left") {
+        //            modelSnake.setDirection("right");
+        //
+        //        }
+        //        System.out.println("direction =" +
+        //                " " + modelSnake.getDirection());
+        //
+        //
+        //    }
+        //});
+
         canvas.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent event) {
-                System.out.println("handle event, RectPositionY = " + modelSnake.getRectPositionY());
 
-                if (event.getCode() == KeyCode.DOWN && modelSnake.getRectPositionY() <= canvas.getHeight() - 2 * modelSnake.getElementSize()) {
+                if (event.getCode() == KeyCode.S && modelSnake.getDirection()!="up") {
                     modelSnake.setDirection("down");
-//        }
                 }
-                if (event.getCode() == KeyCode.UP && modelSnake.getRectPositionY() >= canvasStartPositionY + modelSnake.getElementSize()) {
+                if (event.getCode() == KeyCode.W && modelSnake.getDirection()!="down") {
                     modelSnake.setDirection("up");
-
-
                 }
-                if (event.getCode() == KeyCode.LEFT && modelSnake.getRectPositionX() >= modelSnake.getElementSize()) {
+                if (event.getCode() == KeyCode.A && modelSnake.getDirection()!="right") {
                     modelSnake.setDirection("left");
-
-
                 }
-                if (event.getCode() == KeyCode.RIGHT && modelSnake.getRectPositionX() < canvas.getWidth() - 2 * modelSnake.getElementSize()) {
+                if (event.getCode() == KeyCode.D && modelSnake.getDirection()!="left") {
                     modelSnake.setDirection("right");
 
                 }
-
                 System.out.println("direction =" +
                         " " + modelSnake.getDirection());
 
@@ -99,85 +119,207 @@ public class ViewerSnake extends Application {
                     @Override
                     public void run() {
 
+
 //                      Field generation
                         context.setFill(Color.BLUE);
                         context.fillRect(0, canvasStartPositionY, canvas.getWidth(), canvas.getHeight());
 
-//                      Snake generation
+                    if (modelSnake.isAlive()) {
+
+//                      Snake elements import
+                        List<Point2D.Double> list = new ArrayList<>();
+                        list = modelSnake.getListOfElements();
+
+
+                        //Start conditions
                         context.setFill(modelSnake.getSnakeColor());
                         if (modelSnake.getDirection().equals("")) {
-                            snakeElements.addLast(modelSnake);
-                            context.fillRect(canvas.getWidth() / 2, canvas.getHeight() / 2, modelSnake.getElementSize(), modelSnake.getElementSize());
-                            modelSnake.setRectPositionX(canvas.getWidth() / 2);
-                            modelSnake.setRectPositionY(canvas.getHeight() / 2);
+                            modelSnake.addSnakeElements();
+                            modelSnake.setElementLocation(0, canvas.getWidth() / 2, canvas.getHeight() / 2);
+                            list = modelSnake.getListOfElements();
+
+                            context.fillRect(list.get(0).getX(), list.get(0).getY(), modelSnake.getElementSize(), modelSnake.getElementSize());
+
+                            //modelSnake.setDirection("d");
                             modelSnake.setDirection("right");
 
                         }
-                        if (modelSnake.getDirection().equals("down") && modelSnake.getRectPositionY() <= canvas.getHeight() - modelSnake.getElementSize()) {
-//                            context.setFill(Color.RED);
-                            for (int i = 0; i < modelSnake.getSnakeLength(); i++) {
-                                context.fillRect(modelSnake.getRectPositionX(), modelSnake.getRectPositionY() - i * modelSnake.getElementSize(), modelSnake.getElementSize(), modelSnake.getElementSize());
+                        //
+
+                        //Snake generation
+                        int tmpSize = modelSnake.getListOfElements().size();
+                        boolean outOfBorder = false;
+                        if (modelSnake.getDirection().equals("down") && modelSnake.getListOfElements().get(modelSnake.getListOfElements().size() - 1).getY() <= canvas.getHeight() - modelSnake.getElementSize() && modelSnake.isAlive() == true) {
+
+                            tmpSize = modelSnake.getListOfElements().size();
+                            for (int i = 0; i < tmpSize - 1; i++) {
+                                modelSnake.getListOfElements().get(i).setLocation(modelSnake.getListOfElements().get(i + 1).getX(), modelSnake.getListOfElements().get(i + 1).getY());
                             }
-                            modelSnake.setRectPositionY(modelSnake.getRectPositionY() + modelSnake.getElementSize());
-                        } else if (modelSnake.getDirection().equals("down")) {
-                            context.setFont(new Font("Verdana", 30));
+
+                            modelSnake.setElementLocation(tmpSize - 1, modelSnake.getListOfElements().get(tmpSize - 1).getX(), modelSnake.getListOfElements().get(tmpSize - 1).getY() + modelSnake.getElementSize());
+
+                            list = modelSnake.getListOfElements();
+                            for (int i = 0; i < list.size(); i++) {
+
+                                context.fillRect(list.get(i).getX(), list.get(i).getY(), modelSnake.getElementSize(), modelSnake.getElementSize());
+                            }
+
+                        } else if (modelSnake.getDirection().equals("down") && list.get(tmpSize - 1).getY() >= canvas.getHeight() - modelSnake.getElementSize()) {
+                            modelSnake.setAlive(false);
+                            context.setFont(FONT_GAMEOVER);
                             context.strokeText("OVER", 250, 200);
                         }
-                        if (modelSnake.getDirection().equals("up") && modelSnake.getRectPositionY() >= canvasStartPositionY) {
-                            for (int i = 0; i < modelSnake.getSnakeLength(); i++) {
-                                context.fillRect(modelSnake.getRectPositionX(), modelSnake.getRectPositionY() + i * modelSnake.getElementSize(), modelSnake.getElementSize(), modelSnake.getElementSize());
+                        if (modelSnake.getDirection().equals("up") && list.get(tmpSize - 1).getY() >= canvasStartPositionY + modelSnake.getElementSize() && modelSnake.isAlive() == true) {
+                            tmpSize = modelSnake.getListOfElements().size();
+                            for (int i = 0; i < tmpSize - 1; i++) {
+                                modelSnake.getListOfElements().get(i).setLocation(list.get(i + 1).getX(), modelSnake.getListOfElements().get(i + 1).getY());
                             }
-                            modelSnake.setRectPositionY(modelSnake.getRectPositionY() - modelSnake.getElementSize());
-                        } else if (modelSnake.getDirection().equals("up")) {
+
+                            modelSnake.setElementLocation(tmpSize - 1, modelSnake.getListOfElements().get(tmpSize - 1).getX(), modelSnake.getListOfElements().get(tmpSize - 1).getY() - modelSnake.getElementSize());
+
+                            list = modelSnake.getListOfElements();
+                            for (int i = 0; i < list.size(); i++) {
+
+                                context.fillRect(list.get(i).getX(), list.get(i).getY(), modelSnake.getElementSize(), modelSnake.getElementSize());
+                            }
+
+                        } else if (modelSnake.getDirection().equals("up") && list.get(tmpSize - 1).getY() <= canvasStartPositionY + modelSnake.getElementSize()) {
+                            modelSnake.setAlive(false);
                             context.setFont(new Font("Verdana", 30));
                             context.strokeText("OVER", 250, 200);
                         }
 
-                        if (modelSnake.getDirection().equals("left") && modelSnake.getRectPositionX() >= modelSnake.getElementSize()) {
-                            for (int i = 0; i < modelSnake.getSnakeLength(); i++) {
-                                context.fillRect(modelSnake.getRectPositionX() + i * modelSnake.getElementSize(), modelSnake.getRectPositionY(), modelSnake.getElementSize(), modelSnake.getElementSize());
+                        if (modelSnake.getDirection().equals("left") && list.get(tmpSize - 1).getX() >= modelSnake.getElementSize() && modelSnake.isAlive() == true) {
+                            tmpSize = modelSnake.getListOfElements().size();
+                            for (int i = 0; i < tmpSize - 1; i++) {
+                                modelSnake.getListOfElements().get(i).setLocation(modelSnake.getListOfElements().get(i + 1).getX(), modelSnake.getListOfElements().get(i + 1).getY());
                             }
-                            modelSnake.setRectPositionX(modelSnake.getRectPositionX() - modelSnake.getElementSize());
-                        } else if (modelSnake.getDirection().equals("left")) {
+
+                            modelSnake.setElementLocation(tmpSize - 1, modelSnake.getListOfElements().get(tmpSize - 1).getX() - modelSnake.getElementSize(), modelSnake.getListOfElements().get(tmpSize - 1).getY());
+
+                            list = modelSnake.getListOfElements();
+                            for (int i = 0; i < list.size(); i++) {
+
+                                context.fillRect(list.get(i).getX(), list.get(i).getY(), modelSnake.getElementSize(), modelSnake.getElementSize());
+                            }
+
+                        } else if (modelSnake.getDirection().equals("left") && list.get(tmpSize - 1).getX() <= modelSnake.getElementSize()) {
+                            modelSnake.setAlive(false);
                             context.setFont(new Font("Verdana", 30));
                             context.strokeText("OVER", 250, 200);
                         }
 
-                        if (modelSnake.getDirection().equals("right") && modelSnake.getRectPositionX() < canvas.getWidth() - modelSnake.getElementSize()) {
-                            for (int i = 0; i < modelSnake.getSnakeLength(); i++) {
-                                context.fillRect(modelSnake.getRectPositionX() - i * modelSnake.getElementSize(), modelSnake.getRectPositionY(), modelSnake.getElementSize(), modelSnake.getElementSize());
+                        if (modelSnake.getDirection().equals("right") && list.get(tmpSize - 1).getX() < canvas.getWidth() - modelSnake.getElementSize() && modelSnake.isAlive() == true) {
+                            tmpSize = modelSnake.getListOfElements().size();
+                            for (int i = 0; i < tmpSize - 1; i++) {
+                                modelSnake.getListOfElements().get(i).setLocation(modelSnake.getListOfElements().get(i + 1).getX(), modelSnake.getListOfElements().get(i + 1).getY());
                             }
-                            modelSnake.setRectPositionX(modelSnake.getRectPositionX() + modelSnake.getElementSize());
-                        } else if (modelSnake.getDirection().equals("right")) {
+
+                            modelSnake.setElementLocation(tmpSize - 1, modelSnake.getListOfElements().get(tmpSize - 1).getX() + modelSnake.getElementSize(), modelSnake.getListOfElements().get(tmpSize - 1).getY());
+
+                            list = modelSnake.getListOfElements();
+                            for (int i = 0; i < list.size(); i++) {
+
+                                context.fillRect(list.get(i).getX(), list.get(i).getY(), modelSnake.getElementSize(), modelSnake.getElementSize());
+                            }
+
+                        } else if (modelSnake.getDirection().equals("right") && list.get(tmpSize - 1).getX() >= canvas.getWidth() - modelSnake.getElementSize()) {
+                            modelSnake.setAlive(false);
                             context.setFont(new Font("Verdana", 30));
                             context.strokeText("OVER", 250, 200);
                         }
+
+
+
+                        //if (modelSnake.getDirection().equals("right")
+                        //    //&&list.get(tmpSize - 1).getX() < canvas.getWidth() - modelSnake.getElementSize()
+                        //) {
+                        //    outOfBorder = false;
+                        //    for (int i = 0; i < list.size(); i++) {
+                        //        if (list.get(i).getX() >= canvas.getWidth() - modelSnake.getElementSize()) {
+                        //            outOfBorder = true;
+                        //            System.out.println("right out");
+                        //            return;
+                        //        }
+                        //    }
+                        //    if (!outOfBorder) {
+                        //
+                        //        tmpSize = modelSnake.getListOfElements().size();
+                        //        for (int i = 0; i < tmpSize - 1; i++) {
+                        //            modelSnake.getListOfElements().get(i).setLocation(modelSnake.getListOfElements().get(i + 1).getX(), modelSnake.getListOfElements().get(i + 1).getY());
+                        //        }
+                        //
+                        //        modelSnake.setElementLocation(tmpSize - 1, modelSnake.getListOfElements().get(tmpSize - 1).getX() + modelSnake.getElementSize(), modelSnake.getListOfElements().get(tmpSize - 1).getY());
+                        //
+                        //        list = modelSnake.getListOfElements();
+                        //        for (int i = 0; i < list.size(); i++) {
+                        //
+                        //            context.fillRect(list.get(i).getX(), list.get(i).getY(), modelSnake.getElementSize(), modelSnake.getElementSize());
+                        //        }
+                        //
+                        //    }
+                        //    else if (outOfBorder) {
+                        //        tmpSize = modelSnake.getListOfElements().size();
+                        //        for (int i = 0; i < tmpSize - 1; i++) {
+                        //            modelSnake.getListOfElements().get(i).setLocation(modelSnake.getListOfElements().get(i + 1).getX(), modelSnake.getListOfElements().get(i + 1).getY());
+                        //        }
+                        //        modelSnake.setElementLocation(tmpSize - 1, modelSnake.getListOfElements().get(tmpSize - 1).getX() + modelSnake.getElementSize()-canvas.getWidth(), modelSnake.getListOfElements().get(tmpSize - 1).getY());
+                        //
+                        //        list = modelSnake.getListOfElements();
+                        //        for (int i = 0; i < list.size(); i++) {
+                        //
+                        //            context.fillRect(list.get(i).getX(), list.get(i).getY(), modelSnake.getElementSize(), modelSnake.getElementSize());
+                        //        }
+                        //    }
+
+                            //} else if (modelSnake.getDirection().equals("right") && list.get(tmpSize - 1).getX() > canvas.getWidth() - modelSnake.getElementSize()) {
+                            //    modelSnake.setAlive(false);
+                            //    context.setFont(new Font("Verdana", 30));
+                            //    context.strokeText("OVER", 250, 200);
+                            //
+                        //}
 
 //                        Apple generation
                         if (modelSnake.getApplePositionX() == 0) {
-                            do {
-                                context.setFill(Color.BLUE);
-                                context.fillOval(modelSnake.getNewApplePositionX(), canvasStartPositionY + modelSnake.getNewApplePositionY(), modelSnake.getElementSize(), modelSnake.getElementSize());
-                                System.out.println(modelSnake.getNewApplePositionX());
-                                System.out.println(modelSnake.getNewApplePositionY());
-                                System.out.println(modelSnake.getApplePositionX());
-                                System.out.println(modelSnake.getApplePositionY());
-                            }
-                            while (modelSnake.getApplePositionX() == modelSnake.getRectPositionX() && modelSnake.getApplePositionY() == modelSnake.getRectPositionY());
+                            context.setFill(Color.BLUE);
+                            context.fillOval(modelSnake.getNewApplePositionX(), canvasStartPositionY + modelSnake.getNewApplePositionY(), modelSnake.getElementSize(), modelSnake.getElementSize());
+                            System.out.println("New X = " + modelSnake.getNewApplePositionX());
+                            System.out.println("New Y = " + modelSnake.getNewApplePositionY());
+
+                            for (int i = 0; i < tmpSize - 1; i++)
+                                while (modelSnake.getApplePositionX() == modelSnake.getListOfElements().get(i).getX() && modelSnake.getApplePositionY() == modelSnake.getListOfElements().get(i).getY()) {
+                                    context.setFill(Color.BLUE);
+                                    context.fillOval(modelSnake.getNewApplePositionX(), canvasStartPositionY + modelSnake.getNewApplePositionY(), modelSnake.getElementSize(), modelSnake.getElementSize());
+                                }
+
                         }
-//                        System.out.println(modelSnake.getApplePositionX());
-//                        System.out.println(modelSnake.getApplePositionY());
                         context.setFill(modelSnake.getAppleColor());
                         context.fillOval(modelSnake.getApplePositionX(), canvasStartPositionY + modelSnake.getApplePositionY(), modelSnake.getElementSize(), modelSnake.getElementSize());
 //
 //                        Snake Growth
-                        if (modelSnake.getApplePositionX() == modelSnake.getRectPositionX() && canvasStartPositionY + modelSnake.getApplePositionY() == modelSnake.getRectPositionY()) {
-                            modelSnake.setSnakeLength(modelSnake.getSnakeLength() + 1);
+                        if (modelSnake.getApplePositionX() == modelSnake.getListOfElements().get(tmpSize - 1).getX() && canvasStartPositionY + modelSnake.getApplePositionY() == modelSnake.getListOfElements().get(tmpSize - 1).getY()) {
+                            modelSnake.addSnakeElements();
                             modelSnake.setApplePositionX(0);
+                        }
+
+                        //    Snake self-destruction
+                        for (int i = 0; i < tmpSize - 2; i++) {
+                            if (list.get(tmpSize - 1).getX() == list.get(i).getX() && list.get(tmpSize - 1).getY() == list.get(i).getY()) {
+                                modelSnake.setAlive(false);
+                                context.setFont(new Font("Verdana", 30));
+                                context.strokeText("OVER", 250, 200);
+
+
+                            }
+                        }
+                    } else if (!modelSnake.isAlive()) {
+                            context.setFont(new Font("Verdana", 30));
+                            context.strokeText("OVER", 250, 200);
                         }
 
 
                     }
+
                 };
 
                 updater(updater);
@@ -186,45 +328,33 @@ public class ViewerSnake extends Application {
         }).start();
 
 
-       // new Thread(new Runnable() {
-       //     @Override
-       //     public void run() {
-       //         Runnable updater = new Runnable() {
-       //             @Override
-       //             public void run() {
-       //                 //                        Apple generation
-       //                 if (modelSnake.getApplePositionX() == 0) {
-       //                     do {
-       //                         appleContext.setFill(modelSnake.getAppleColor());
-       //                         appleContext.fillRect(modelSnake.getNewApplePositionX(), canvasStartPositionY+modelSnake.getNewApplePositionY(), modelSnake.getElementSize(), modelSnake.getElementSize());
-       //                         System.out.println(modelSnake.getNewApplePositionX());
-       //                         System.out.println(modelSnake.getNewApplePositionY());
-       //                     } while (modelSnake.getApplePositionX()==modelSnake.getRectPositionX()&&modelSnake.getApplePositionY()==modelSnake.getRectPositionY());
-       //                 }
-       //                 appleContext.fillRect(modelSnake.getNewApplePositionX(), canvasStartPositionY+modelSnake.getNewApplePositionY(), modelSnake.getElementSize(), modelSnake.getElementSize());
-       //
-       //             }
-       //         };
-       //
-       //         updater(updater);
-       //         return;
-       //     }
-       // }).start();
-
-
-
-
         AnchorPane anchorPane = new AnchorPane();
         //anchorPane.setLayoutX(300);
-        //anchorPane.setLayoutY(20);
+        anchorPane.setLayoutY(550);
         anchorPane.setPrefWidth(canvas.getWidth());
 
-        String startButton = "(Re)Start game";
-        Button gameStartButton = new Button(startButton);
+        String startButtonLabel = "(Re)Start game";
+        Button startButton = new Button(startButtonLabel);
 
 
-        anchorPane.getChildren().add(gameStartButton);
-        AnchorPane.setRightAnchor(gameStartButton, 5d);
+        startButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                modelSnake.setDirection("");
+                modelSnake.getListOfElements().removeAll(modelSnake.getListOfElements()) ;
+                modelSnake.setGameSpeed(200);
+                System.out.println("start");
+                System.out.println("List size = "+modelSnake.getListOfElements().size());
+
+                modelSnake.setAlive(true);
+
+            }
+        });
+
+
+        anchorPane.getChildren().add(startButton);
+        AnchorPane.setRightAnchor(startButton, 5d);
+        
         //anchorPane.getChildren().add(textField);
         //AnchorPane.setRightAnchor(textField, 1.0);
 
@@ -236,21 +366,42 @@ public class ViewerSnake extends Application {
         speedDown.setLayoutX(100);
         speedDown.setLayoutY(20);
 
-        TextField textField = new TextField("Welcome");
-        textField.setLayoutX(200);
-        textField.setLayoutY(0);
+        Text textField = new Text("Welcome");
+        textField.setLayoutX(modelSnake.getCanvasWidth()/2-modelSnake.getCanvasWidth()/16);
+        
+        textField.setLayoutY(-50);
 
-        speedUp.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<MouseEvent>() {
+
+
+        
+
+        //speedUp.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<MouseEvent>() {
+        //    @Override
+        //    public void handle(MouseEvent event) {
+        //        modelSnake.setGameSpeed(modelSnake.getGameSpeed() / 2);
+        //        textField.setText("Game speed have been doubled");
+        //    }
+        //});
+        //speedUp.setOnAction(new EventHandler<ActionEvent>() {
+        //    @Override
+        //    public void handle(ActionEvent event) {
+        //        modelSnake.setGameSpeed(modelSnake.getGameSpeed() / 2);
+        //        textField.setText("Game speed have been doubled");
+        //        System.out.println("Speed Up button");
+        //    }
+        //});
+        //speedDown.setOnAction(new EventHandler<ActionEvent>() {
+        //    @Override
+        //    public void handle(ActionEvent event) {
+        //        modelSnake.setGameSpeed(modelSnake.getGameSpeed() * 2);
+        //        textField.setText("Game speed have been halved");
+        //        System.out.println("Speed Down button");
+        //    }
+        //});
+        speedUp.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
-                modelSnake.setGameSpeed(modelSnake.getGameSpeed()/2);
-                textField.setText("Game speed have been doubled");
-            }
-        });
-        speedUp.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                modelSnake.setGameSpeed(modelSnake.getGameSpeed()/2);
+                modelSnake.setGameSpeed(modelSnake.getGameSpeed() / 2);
                 textField.setText("Game speed have been doubled");
                 System.out.println("Speed Up button");
             }
@@ -258,11 +409,16 @@ public class ViewerSnake extends Application {
         speedDown.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
-                modelSnake.setGameSpeed(modelSnake.getGameSpeed()*2);
+                modelSnake.setGameSpeed(modelSnake.getGameSpeed() * 2);
                 textField.setText("Game speed have been halved");
             }
         });
 
+
+
+        BorderPane borderPane = new BorderPane();
+        
+        //borderPane.setCenter();
 
         pane.getChildren().add(speedUp);
         pane.getChildren().add(speedDown);
@@ -270,12 +426,10 @@ public class ViewerSnake extends Application {
 
         anchorPane.getChildren().add(pane);
 
-        BorderPane borderPane = new BorderPane();
-        
+
         //AnchorPane.setLeftAnchor(pane);
 
         //BorderPane borderPane = new BorderPane();
-        
 
 
         Group root = new Group();
@@ -302,7 +456,11 @@ public class ViewerSnake extends Application {
     private void updater(Runnable updater) {
         while (true) {
             try {
-                Thread.currentThread().sleep(modelSnake.getGameSpeed());
+                //if (modelSnake.isAlive()) {
+                    Thread.currentThread().sleep(modelSnake.getGameSpeed());
+                //} else {
+                //    break;
+                //}
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
