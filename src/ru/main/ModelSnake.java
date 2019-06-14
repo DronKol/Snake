@@ -6,54 +6,45 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
+import static ru.main.Constans.INITIAL_GAME_SPEED;
+
 public class ModelSnake {
     private double elementSize = 10;
     //private double rectPositionX;
     //private double rectPositionY;
 
-    private long gameSpeed = 200;
+    private long gameSpeed = INITIAL_GAME_SPEED;
 
     //private double snakeLength = 0;
     private List<Point2D.Double> listOfElements = new ArrayList<Point2D.Double>();
-    private ModelSnake modelSnake;
+    //private ModelSnake modelSnake;
 
     private String direction = "";
 
     private double applePositionX;
     private double applePositionY;
 
-    private boolean alive=true;
+    private boolean alive = true;
 
+    private Color gameFieldColor = Color.BLUE;
     private Color snakeColor = Color.RED;
     private Color appleColor = Color.GREEN;
 
     //Canvas dimensions
-    private double canvasWidth=600;
-    private double canvasHeight=400;
+    private double canvasWidth = 600;
+    private double canvasHeight = 400;
+
+
+    private int currentPoints = 0;
+    private int bestPoints = 0;
 
 
     private double x;
     private double y;
-    private List<ModelSnakeListener> listeners = new ArrayList<>();
 
     public ModelSnake() {
-        
-    }
 
-    private void notifyAllListeners() {
-        for (ModelSnakeListener listener : listeners) {
-            listener.onchange();
-        }
     }
-
-    public void addChangeListener(ModelSnakeListener modelSnakeListener) {
-        listeners.add(modelSnakeListener);
-    }
-
-    public void removeChangeListener(ModelSnakeListener modelSnakeListener) {
-        listeners.remove(modelSnakeListener);
-    }
-
 
     public double getElementSize() {
         return elementSize;
@@ -71,6 +62,10 @@ public class ModelSnake {
     //    return rectPositionX;
     //}
 
+
+    public Color getGameFieldColor() {
+        return gameFieldColor;
+    }
 
     public double getCanvasWidth() {
         return canvasWidth;
@@ -132,6 +127,14 @@ public class ModelSnake {
         return appleColor;
     }
 
+    public int getCurrentPoints() {
+        return currentPoints;
+    }
+
+    public int getBestPoints() {
+        return bestPoints;
+    }
+
 
     //public void setSnakeLength(double snakeLength) {
     //    this.snakeLength = snakeLength;
@@ -148,24 +151,30 @@ public class ModelSnake {
     //    notifyAllListeners();
     //}
 
+
+    public void setCurrentPoints(int currentPoints) {
+        this.currentPoints = currentPoints;
+    }
+
+    public void setBestPoints(int bestPoints) {
+        this.bestPoints = bestPoints;
+    }
+
+
     public void setDirection(String direction) {
         this.direction = direction;
-        notifyAllListeners();
     }
 
     public void setApplePositionX(double applePositionX) {
         this.applePositionX = applePositionX;
-        notifyAllListeners();
     }
 
     public void setApplePositionY(double applePositionY) {
         this.applePositionY = applePositionY;
-        notifyAllListeners();
     }
 
     public void setGameSpeed(long gameSpeed) {
         this.gameSpeed = gameSpeed;
-        notifyAllListeners();
     }
 
     //public List<Point2D.Double> getListOfElements() {
@@ -184,7 +193,7 @@ public class ModelSnake {
     }
 
     public void setElementLocation(int element, double locationX, double locationY) {
-        listOfElements.get(element).setLocation(locationX,locationY);
+        listOfElements.get(element).setLocation(locationX, locationY);
 
         //Point2D.Double point = new Point2D.Double();
         //point = modelSnake.getListOfElements().get(element);
@@ -200,10 +209,10 @@ public class ModelSnake {
         //point.setLocation(10,20);
         listOfElements.add(point);
 
-        System.out.println("ListSize = "+listOfElements.size());
-        for (int i = listOfElements.size()-1 ; i >0; ) {
+        System.out.println("ListSize = " + listOfElements.size());
+        for (int i = listOfElements.size() - 1; i > 0; ) {
 
-            listOfElements.get(i).setLocation(listOfElements.get(i-1).getX(),listOfElements.get(i-1).getY());
+            listOfElements.get(i).setLocation(listOfElements.get(i - 1).getX(), listOfElements.get(i - 1).getY());
             //listOfElements.set(i, listOfElements.get(i - 1));
             i--;
         }
@@ -217,14 +226,14 @@ public class ModelSnake {
                 listOfElements.get(0).setLocation(listOfElements.get(1).getX(), listOfElements.get(1).getY() + elementSize);
             }
             if (direction.equals("right")) {
-                listOfElements.get(0).setLocation(listOfElements.get(1).getX()- elementSize, listOfElements.get(1).getY() );
+                listOfElements.get(0).setLocation(listOfElements.get(1).getX() - elementSize, listOfElements.get(1).getY());
             }
             if (direction.equals("left")) {
-                listOfElements.get(0).setLocation(listOfElements.get(1).getX()+ elementSize, listOfElements.get(1).getY() );
+                listOfElements.get(0).setLocation(listOfElements.get(1).getX() + elementSize, listOfElements.get(1).getY());
             }
         }
 
-        if (listOfElements.size()>2) {
+        if (listOfElements.size() > 2) {
             if (listOfElements.get(2).getX() - listOfElements.get(1).getX() == 0 && listOfElements.get(2).getY() - listOfElements.get(1).getY() > 0) {
                 listOfElements.get(0).setLocation(listOfElements.get(1).getX(), listOfElements.get(1).getY() - elementSize);
             }
@@ -243,8 +252,16 @@ public class ModelSnake {
 
     }
 
+    public void accelerationFromLength() {
+        if (getGameSpeed() >= INITIAL_GAME_SPEED / 3) {
+            setGameSpeed((long) (getGameSpeed() / 1.1));
+        } else {
+            setGameSpeed((long) (getGameSpeed() / 1.05));
+        }
+    }
 
-    public void removeAllSnakeElements (List<Point2D.Double> list) {
+
+    public void removeAllSnakeElements(List<Point2D.Double> list) {
         for (int i = 0; i < list.size(); i++) {
             list.removeAll(listOfElements);
         }
@@ -260,11 +277,9 @@ public class ModelSnake {
 
     public void setX(double x) {
         this.x = x;
-        notifyAllListeners();
     }
 
     public void setY(double y) {
         this.y = y;
-        notifyAllListeners();
     }
 }
